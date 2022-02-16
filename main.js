@@ -1,10 +1,10 @@
-// Первый вариант написания кода (c Task'ом #3)
+const $arenas = document.querySelector('.arenas');
+const $randomButton = document.querySelector('.button');
 
-// Task #0
-// Создаём первый объект, у которого метод-функция реализована через контекст this
-const playerOne = {
+const player1 = {
+    player: 1,
     name: 'SCORPION',
-    hp: 50,
+    hp: 100,
     img: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
     weapon: ['Sword', 'Kunai'],
     attack() {
@@ -12,10 +12,10 @@ const playerOne = {
     }
 };
 
-// Создаём второй объект, у которого метод-функция реализована не через контекст this
-const playerTwo = {
+const player2 = {
+    player: 2,
     name: 'KITANA',
-    hp: 80,
+    hp: 100,
     img: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif',
     weapon: ['Shield', 'Bow'],
     attack: function() {
@@ -23,93 +23,79 @@ const playerTwo = {
     }
 };
 
-// Task #1 and #2
-// Создаём функцию-конструктор блоков со взаимодействием с DOM
-function createPlayer(playerClass, objectName) {
-    const $player = document.createElement('div');
-    $player.classList.add(playerClass);
+function createElement(tag, className) {
+    const $tag = document.createElement(tag);
 
-    const $progressBar = document.createElement('div');
-    $progressBar.classList.add('progressbar');
-    const $character = document.createElement('div');
-    $character.classList.add('character');
+    if (className) {
+        $tag.classList.add(className);
+    }
+
+    return $tag;
+}
+
+function createPlayer(objectName) {
+    const $player = createElement('div', 'player' + objectName.player);
+    const $progressBar = createElement('div', 'progressbar');
+    const $character = createElement('div', 'character');
+    const $life = createElement('div', 'life');
+    const $name = createElement('div', 'name');
+    const $img = createElement('img');
+
+    $life.style.width = objectName.hp + '%';
+    $name.innerText = objectName.name;
+    $img.src = objectName.img;
+
     $player.appendChild($progressBar);
     $player.appendChild($character);
 
-    const $life = document.createElement('div');
-    $life.classList.add('life');
-    $life.style.width = objectName.hp + '%';
-    const $name = document.createElement('div');
-    $name.classList.add('name');
-    $name.innerText = objectName.name;
     $progressBar.appendChild($life);
     $progressBar.appendChild($name);
 
-    const $img = document.createElement('img');
-    $img.src = objectName.img;
     $character.appendChild($img);
 
-    const $arenas = document.querySelector('.arenas');
-    $arenas.appendChild($player);
+    return $player;
 }
 
-createPlayer('player1', playerOne);
-createPlayer('player2', playerTwo);
+function changeHP(player) {
+    const $playerLife = document.querySelector('.player' + player.player + ' ' + '.life');
+    player.hp -= getRandomNumber(20);
 
-// Второй вариант написания кода (Без Task'а #3)
+    if (player.hp <= 0) {
+        player.hp = 0;
+        $randomButton.disabled = true;
 
-// // Task #0
-// // Создаём первый объект, у которого метод-функция реализована через контекст this
-// const playerOne = {
-//     name: 'Scorpion',
-//     hp: 100,
-//     img: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
-//     weapon: ['Sword', 'Kunai'],
-//     attack() {
-//         console.log(`${this.name} Fight...`);
-//     }
-// };
+        if (player1.hp === 0 && player2.hp > 0) {
+            $arenas.appendChild(playerWins(player2.name));
+        } else {
+            $arenas.appendChild(playerWins(player1.name));
+        }
+    }
 
-// // Создаём второй объект, у которого метод-функция реализована не через контекст this
-// const playerTwo = {
-//     name: 'Kitana',
-//     hp: 100,
-//     img: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif',
-//     weapon: ['Shield', 'Bow'],
-//     attack: function() {
-//         console.log(playerTwo.name + ' ' + 'Fight...');
-//     }
-// };
+    $playerLife.style.width = player.hp + '%';
+}
 
-// // Task #1 and #2
-// // Создаём функцию-конструктор блоков со взаимодействием с DOM
-// function createPlayer(playerClass, playerName, playerHP, playerImage) {
-//     const $player = document.createElement('div');
-//     $player.classList.add(playerClass);
+function playerWins(name) {
+    const $winsTitle = createElement('div', 'winsTitle');
+    $winsTitle.innerText = name + ' ' + 'wins';
 
-//     const $progressBar = document.createElement('div');
-//     $progressBar.classList.add('progressbar');
-//     const $character = document.createElement('div');
-//     $character.classList.add('character');
-//     $player.appendChild($progressBar);
-//     $player.appendChild($character);
+    return $winsTitle;
+}
 
-//     const $life = document.createElement('div');
-//     $life.classList.add('life');
-//     $life.style.width = `${playerHP}%`;
-//     const $name = document.createElement('div');
-//     $name.classList.add('name');
-//     $name.innerText = playerName;
-//     $progressBar.appendChild($life);
-//     $progressBar.appendChild($name);
+// function playerLose(name) {
+//     const $loseTitle = createElement('div', 'loseTitle');
+//     $loseTitle.innerText = name + ' ' + 'lose';
 
-//     const $img = document.createElement('img');
-//     $img.src = playerImage;
-//     $character.appendChild($img);
-
-//     const $arenas = document.querySelector('.arenas');
-//     $arenas.appendChild($player);
+//     return $loseTitle;
 // }
 
-// createPlayer('player1', 'SCORPION', 50, playerOne.img);
-// createPlayer('player2', 'SUB-ZERO', 80, playerTwo.img);
+function getRandomNumber(number) {
+    return Math.ceil(Math.random() * number);
+}
+
+$randomButton.addEventListener('click', function() {
+    changeHP(player1);
+    changeHP(player2);
+});
+
+$arenas.appendChild(createPlayer(player1));
+$arenas.appendChild(createPlayer(player2));
