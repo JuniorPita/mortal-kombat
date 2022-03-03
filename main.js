@@ -1,5 +1,54 @@
 const $arenas = document.querySelector('.arenas');
 const $formFight = document.querySelector('.control');
+const $chat = document.querySelector('.chat');
+
+const LOGS = {
+    start: 'Часы показывали [time], когда [player1] и [player2] бросили вызов друг другу.',
+    end: [
+        'Результат удара [playerWins]: [playerLose] - труп',
+        '[playerLose] погиб от удара бойца [playerWins]',
+        'Результат боя: [playerLose] - жертва, [playerWins] - убийца'
+    ],
+    hit: [
+        '[playerDefence] пытался сконцентрироваться, но [playerKick] разбежавшись раздробил копчиком левое ухо врага.',
+        '[playerDefence] расстроился, как вдруг, неожиданно [playerKick] случайно раздробил грудью грудину противника.',
+        '[playerDefence] зажмурился, а в это время [playerKick], прослезившись, раздробил кулаком пах оппонента.',
+        '[playerDefence] чесал <вырезано цензурой>, и внезапно неустрашимый [playerKick] отчаянно размозжил грудью левый бицепс оппонента.',
+        '[playerDefence] задумался, но внезапно [playerKick] случайно влепил грубый удар копчиком в пояс оппонента.',
+        '[playerDefence] ковырялся в зубах, но [playerKick] проснувшись влепил тяжелый удар пальцем в кадык врага.',
+        '[playerDefence] вспомнил что-то важное, но внезапно [playerKick] зевнув, размозжил открытой ладонью челюсть противника.',
+        '[playerDefence] осмотрелся, и в это время [playerKick] мимоходом раздробил стопой аппендикс соперника.',
+        '[playerDefence] кашлянул, но внезапно [playerKick] показав палец, размозжил пальцем грудь соперника.',
+        '[playerDefence] пытался что-то сказать, а жестокий [playerKick] проснувшись размозжил копчиком левую ногу противника.',
+        '[playerDefence] забылся, как внезапно безумный [playerKick] со скуки, влепил удар коленом в левый бок соперника.',
+        '[playerDefence] поперхнулся, а за это [playerKick] мимоходом раздробил коленом висок врага.',
+        '[playerDefence] расстроился, а в это время наглый [playerKick] пошатнувшись размозжил копчиком губы оппонента.',
+        '[playerDefence] осмотрелся, но внезапно [playerKick] робко размозжил коленом левый глаз противника.',
+        '[playerDefence] осмотрелся, а [playerKick] вломил дробящий удар плечом, пробив блок, куда обычно не бьют оппонента.',
+        '[playerDefence] ковырялся в зубах, как вдруг, неожиданно [playerKick] отчаянно размозжил плечом мышцы пресса оппонента.',
+        '[playerDefence] пришел в себя, и в это время [playerKick] провел разбивающий удар кистью руки, пробив блок, в голень противника.',
+        '[playerDefence] пошатнулся, а в это время [playerKick] хихикая влепил грубый удар открытой ладонью по бедрам врага.'
+    ],
+    defence: [
+        '[playerKick] потерял момент и храбрый [playerDefence] отпрыгнул от удара открытой ладонью в ключицу.',
+        '[playerKick] не контролировал ситуацию, и потому [playerDefence] поставил блок на удар пяткой в правую грудь.',
+        '[playerKick] потерял момент и [playerDefence] поставил блок на удар коленом по селезенке.',
+        '[playerKick] поскользнулся и задумчивый [playerDefence] поставил блок на тычок головой в бровь.',
+        '[playerKick] старался провести удар, но непобедимый [playerDefence] ушел в сторону от удара копчиком прямо в пятку.',
+        '[playerKick] обманулся и жестокий [playerDefence] блокировал удар стопой в солнечное сплетение.',
+        '[playerKick] не думал о бое, потому расстроенный [playerDefence] отпрыгнул от удара кулаком куда обычно не бьют.',
+        '[playerKick] обманулся и жестокий [playerDefence] блокировал удар стопой в солнечное сплетение.'
+    ],
+    draw: 'Ничья - это тоже победа!'
+};
+
+const MAP_WITH_NAMES = {
+    SCORPION: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
+    KITANA: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif',
+    LIUKANG: 'http://reactmarathon-api.herokuapp.com/assets/liukang.gif',
+    SONYA: 'http://reactmarathon-api.herokuapp.com/assets/sonya.gif',
+    SUBZERO: 'http://reactmarathon-api.herokuapp.com/assets/subzero.gif'
+};
 
 const HIT = {
     head: 30,
@@ -9,11 +58,11 @@ const HIT = {
 
 const ATTACK = ['head', 'body', 'foot'];
 
-const firstPlayer = {
+const player1 = {
     player: 1,
     name: 'SCORPION',
     hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
+    img: MAP_WITH_NAMES['SCORPION'],
     weapon: ['Sword', 'Kunai'],
     elHP,
     changeHP,
@@ -21,34 +70,24 @@ const firstPlayer = {
     attack
 };
 
-const secondPlayer = {
+const player2 = {
     player: 2,
     name: 'SUB-ZERO',
     hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/subzero.gif',
-    weapon: ['Bow', 'Scepter'],
+    img: MAP_WITH_NAMES['SUBZERO'],
+    weapon: ['Magic', 'Gloves'],
     elHP,
     changeHP,
     renderHP,
     attack
 };
 
-function createElement(tag, className) {
-    const $tag = document.createElement(tag);
-
-    if (className) {
-        $tag.classList.add(className);
-    }
-
-    return $tag;
-}
-
 function attack() {
     console.log(`${this.name} Fight...`);
 }
 
 function elHP() {
-    return document.querySelector('.player' + this.player + ' ' + '.life');
+    return document.querySelector(`.player${this.player} .life`);
 }
 
 function changeHP(randomHP) {
@@ -60,80 +99,89 @@ function changeHP(randomHP) {
 }
 
 function renderHP() {
-    this.elHP().style.width = this.hp + '%';
+    this.elHP().style.width = `${this.hp}%`;
 }
 
-function createPlayer(playerData) {
-    const $player = createElement('div', 'player' + playerData.player);
-    const $progressbar = createElement('div', 'progressbar');
-    const $character = createElement('div', 'character');
-    const $life = createElement('div', 'life');
-    const $name = createElement('div', 'name');
-    const $img = createElement('img');
+const getRandomNumber = (min = 1, max = 20) => {
+    return Math.floor(
+        Math.random() * (max - min + 1) + min
+    );
+};
 
-    $life.style.width = playerData.hp + '%';
-    $name.innerText = playerData.name;
-    $img.src = playerData.img;
+const createHTMLElements = (tag = 'div', className, content) => {
+    const el = document.createElement(tag);
 
-    $player.appendChild($progressbar);
-    $player.appendChild($character);
-    $progressbar.appendChild($life);
-    $progressbar.appendChild($name);
-    $character.appendChild($img);
-
-    return $player;
-}
-
-function getRandomHP(number) {
-    return Math.ceil(Math.random() * number);
-}
-
-function showResult(name) {
-    const $resultTitle = createElement('div', 'loseTitle');
-    
-    if (name) {
-        $resultTitle.innerText = name + ' wins';
-    } else {
-        $resultTitle.innerText = 'draw';
+    if (className) {
+        el.classList.add(className);
     }
 
-    return $resultTitle;
-}
+    if (typeof content === 'string') {
+        el.innerHTML = content;
+    }
 
-function createReloadButton() {
-    const $reloadWrap = createElement('div', 'reloadWrap');
-    const $reloadButton = createElement('button', 'button');
+    if (Array.isArray(content)) {
+        content.forEach((item) => el.appendChild(item));
+    }
 
-    $reloadButton.innerText = 'Restart';
+    return el;
+};
 
-    $reloadButton.addEventListener('click', function() {
-        window.location.reload();
-    });
+const createPlayerMarkup = (playerName, name, hp, pathToImg) => {
+    const lifeEl = createHTMLElements('div', 'life');
+    const nameEl = createHTMLElements('div', 'name', name);
+    const imgEl = createHTMLElements('img');
 
-    $reloadWrap.appendChild($reloadButton);
-    $arenas.appendChild($reloadWrap);
-}
+    lifeEl.style.width = `${hp}%`;
+    imgEl.src = pathToImg;
 
-$arenas.appendChild(createPlayer(firstPlayer));
-$arenas.appendChild(createPlayer(secondPlayer));
+    const progressBarEl = createHTMLElements('div', 'progressbar', [lifeEl, nameEl]);
+    const characterEl = createHTMLElements('div', 'character', [imgEl]);
 
-function enemyAttack() {
-    const hit = ATTACK[getRandomHP(3) - 1];
-    const defence = ATTACK[getRandomHP(3) - 1];
+    return createHTMLElements('div', playerName, [progressBarEl, characterEl]);
+};
+
+const createPlayer = (playerID, {name, hp, img}) => {
+    const player = createPlayerMarkup(playerID, name, hp, img);
+
+    $arenas.appendChild(player);
+};
+
+const renderPlayerWin = (name) => {
+    const winnerName = name ? `${name} wins` : 'draw';
+
+    const winTitle = createHTMLElements('div', 'loseTitle', winnerName);
+
+    $arenas.appendChild(winTitle);
+};
+
+const createReloadButton = () => {
+    const reloadButton = createHTMLElements('button', 'button', 'Reload');
+    const reloadButtonWrap = createHTMLElements('div', 'reloadWrap', [reloadButton]);
+
+    $arenas.appendChild(reloadButtonWrap);
+
+    return reloadButton;
+};
+
+const enemyAttack = () => {
+    const length = ATTACK.length - 1;
+
+    const hit = ATTACK[getRandomNumber(0, length)];
+    const defence = ATTACK[getRandomNumber(0, length)];
 
     return {
-        value: getRandomHP(HIT[hit]),
+        value: getRandomNumber(0, HIT[hit]),
         hit,
         defence
     };
-}
+};
 
-function playerAttack() {
+const playerAttack = () => {
     const attack = {};
 
     for (let item of $formFight) {
         if (item.checked && item.name === 'hit') {
-            attack.value = getRandomHP(HIT[item.value]);
+            attack.value = getRandomNumber(0, HIT[item.value]);
             attack.hit = item.value;
         }
 
@@ -145,39 +193,120 @@ function playerAttack() {
     }
 
     return attack;
-}
+};
 
-function fightResult() {
-    if (firstPlayer.hp === 0 || secondPlayer.hp === 0) {
-        createReloadButton();
+const showResult = () => {
+    const reloadButton = createReloadButton();
+
+    reloadButton.addEventListener('click', () => {
+        window.location.reload();
+    });
+
+    if (player1.hp === 0 || player2.hp === 0) {
+        for (let item of $formFight) {
+            item.disabled = true;
+        }
     }
 
-    if (firstPlayer.hp === 0 && firstPlayer.hp < secondPlayer.hp) {
-        $arenas.appendChild(showResult(secondPlayer.name));
-    } else if (secondPlayer.hp === 0 && secondPlayer.hp < firstPlayer.hp) {
-        $arenas.appendChild(showResult(firstPlayer.name));
-    } else if (firstPlayer.hp === 0 && secondPlayer.hp === 0) {
-        $arenas.appendChild(showResult());
+    if (player1.hp === 0 && player1.hp < player2.hp) {
+        renderPlayerWin(player2.name);
+        generateLogs('end', player1, player2);
+    } else if (player2.hp === 0 && player2.hp < player1.hp) {
+        renderPlayerWin(player1.name);
+        generateLogs('end', player1, player2);
+    } else if (player1.hp === 0 && player2.hp === 0) {
+        renderPlayerWin();
+        generateLogs('draw');
     } else {
-        console.log(new Error('Something went wrong...'));
+        console.log(new Error('Something went wrong!'));
     }
-}
+};
 
-$formFight.addEventListener('submit', function(e) {
+const generateTimeString = (time) => time < 10 ? `0${time}` : time;
+
+const getTime = () => {
+    const date = new Date();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+
+    const formattedDate = `${generateTimeString(hours)}:${generateTimeString(minutes)}:${generateTimeString(seconds)}`;
+
+    return formattedDate;
+};
+
+const generateLogs = (type, player1, player2, damage = 0) => {
+    const text = type.includes('start', 'draw')
+    ? LOGS[type]
+    : LOGS[type][getRandomNumber(0, LOGS[type].length - 1)];
+
+    const formattedDate = getTime();
+
+    let logMessage = '';
+
+    switch (type) {
+        case 'start':
+            logMessage = text
+                .replace('[time]', formattedDate)
+                .replace('[player1]', player1.name)
+                .replace('[player2]', player2.name);
+            break;
+        case 'end':
+            logMessage = `${formattedDate} - ${text}`
+                .replace('[playerWins]', player1.name)
+                .replace('[playerLose]', player2.name);
+            break;
+        case 'hit':
+            logMessage = `${formattedDate} - ${text} - ${damage} [${player2.hp}/100]`
+                .replace('[playerKick]', player1.name)
+                .replace('[playerDefence]', player2.name);
+            break;
+        case 'defence':
+            logMessage = `${formattedDate} - ${text}`
+                .replace('[playerDefence]', player1.name)
+                .replace('[playerKick]', player2.name);
+            break;
+        default:
+            logMessage = text;
+    };
+
+    $chat.insertAdjacentHTML('afterbegin', `<p>${logMessage}</p>`);
+};
+
+$formFight.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const enemy = enemyAttack();
-    const player = playerAttack();
+    const attack = playerAttack();
 
-    if (enemy.hit !== player.defence) {
-        firstPlayer.changeHP(enemy.value);
-        firstPlayer.renderHP();
+    let damagePlayer1 = 0;
+    let damagePlayer2 = 0;
+
+    if (enemy.hit === attack.defence) {
+        generateLogs('defence', player2, player1, damagePlayer1);
+    } else {
+        damagePlayer1 = enemy.value;
+
+        player1.changeHP(damagePlayer1);
+        player1.renderHP();
+
+        generateLogs('hit', player2, player1, damagePlayer1);
     }
 
-    if (player.hit !== enemy.defence) {
-        secondPlayer.changeHP(player.value);
-        secondPlayer.renderHP();
+    if (attack.hit === enemy.defence) {
+        generateLogs('defence', player1, player2, damagePlayer1);
+    } else {
+        damagePlayer2 = attack.value;
+
+        player2.changeHP(damagePlayer2);
+        player2.renderHP();
+
+        generateLogs('hit', player1, player2, damagePlayer2);
     }
 
-    fightResult();
+    showResult();
 });
+
+createPlayer('player1', player1);
+createPlayer('player2', player2);
+generateLogs('start', player1, player2);
