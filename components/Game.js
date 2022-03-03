@@ -1,12 +1,15 @@
-import { firstPlayer, secondPlayer, createPlayer } from './Player.js';
-import { HIT, ATTACK } from '../constants/constants.js';
-import { getRandom, createElement } from '../utils/utils.js';
+import Player from './Player.js';
+import Api from './Api.js';
+import { createElement } from '../utils/utils.js';
 import { generateLogs } from '../utils/logs.js';
 
 export default class Game {
   constructor() {
     this.$arenas = document.querySelector('.arenas');
     this.$formFight = document.querySelector('.control');
+    this.api = new Api();
+    this.firstPlayer = {};
+    this.secondPlayer = {};
   }
 
   showResult = (name) => {
@@ -22,34 +25,23 @@ export default class Game {
   }
 
   fightResult = () => {
-    if (firstPlayer.hp === 0 || secondPlayer.hp === 0) {
+    if (this.firstPlayer.hp === 0 || this.secondPlayer.hp === 0) {
       this.createReloadButton();
       for (let item of this.$formFight) {
         item.disabled = true;
       }
     }
 
-    if (firstPlayer.hp === 0 && firstPlayer.hp < secondPlayer.hp) {
-      this.$arenas.appendChild(this.showResult(secondPlayer.name));
-      generateLogs('end', secondPlayer, firstPlayer);
-    } else if (secondPlayer.hp === 0 && secondPlayer.hp < firstPlayer.hp) {
-      this.$arenas.appendChild(this.showResult(firstPlayer.name));
-      generateLogs('end', firstPlayer, secondPlayer);
-    } else if (firstPlayer.hp === 0 && secondPlayer.hp === 0) {
+    if (this.firstPlayer.hp === 0 && this.firstPlayer.hp < this.secondPlayer.hp) {
+      this.$arenas.appendChild(this.showResult(this.secondPlayer.name));
+      generateLogs('end', this.secondPlayer, this.firstPlayer);
+    } else if (this.secondPlayer.hp === 0 && this.secondPlayer.hp < this.firstPlayer.hp) {
+      this.$arenas.appendChild(this.showResult(this.firstPlayer.name));
+      generateLogs('end', this.firstPlayer, this.secondPlayer);
+    } else if (this.firstPlayer.hp === 0 && this.secondPlayer.hp === 0) {
       this.$arenas.appendChild(this.showResult());
       generateLogs('draw');
     }
-  }
-
-  enemyAttack = () => {
-    const hit = ATTACK[getRandom(3) - 1];
-    const defence = ATTACK[getRandom(3) - 1];
-
-    return {
-      value: getRandom(HIT[hit]),
-      hit,
-      defence,
-    };
   }
 
   playerAttack = () => {
@@ -57,7 +49,6 @@ export default class Game {
 
     for (let item of this.$formFight) {
       if (item.checked && item.name === 'hit') {
-        attack.value = getRandom(HIT[item.value]);
         attack.hit = item.value;
       }
 
@@ -78,48 +69,60 @@ export default class Game {
     $reloadButton.innerText = 'Restart';
 
     $reloadButton.addEventListener('click', function() {
-      window.location.reload();
+      window.location.pathname = '../index.html';
     });
 
     $reloadWrap.appendChild($reloadButton);
     this.$arenas.appendChild($reloadWrap);
 };
 
-  addPlayers = () => {
-    this.$arenas.appendChild(createPlayer(firstPlayer));
-    this.$arenas.appendChild(createPlayer(secondPlayer));
-  }
-
   addFormSubmit = () => {
-    this.$formFight.addEventListener('submit', (evt) => {
+    this.$formFight.addEventListener('submit', async (evt) => {
       evt.preventDefault();
 
-      const enemy = this.enemyAttack();
-      const player = this.playerAttack();
+      const playerAction = this.playerAttack();
+      const res = await this.api.getFight(playerAction.hit, playerAction.defence);
+      const enemy = res.player1;
+      const player = res.player2;
 
       if (enemy.hit !== player.defence) {
-        firstPlayer.changeHP(enemy.value);
-        firstPlayer.renderHP();
-        generateLogs('hit', secondPlayer, firstPlayer, enemy.value);
+        this.firstPlayer.changeHP(enemy.value);
+        this.firstPlayer.renderHP();
+        generateLogs('hit', this.secondPlayer, this.firstPlayer, enemy.value);
       } else {
-        generateLogs('defence', firstPlayer, secondPlayer)
+        generateLogs('defence', this.firstPlayer, this.secondPlayer)
       }
 
       if (player.hit !== enemy.defence) {
-        secondPlayer.changeHP(player.value);
-        secondPlayer.renderHP();
-        generateLogs('hit', firstPlayer, secondPlayer, player.value);
+        this.secondPlayer.changeHP(player.value);
+        this.secondPlayer.renderHP();
+        generateLogs('hit', this.firstPlayer, this.secondPlayer, player.value);
       } else {
-        generateLogs('defence', secondPlayer, firstPlayer)
+        generateLogs('defence', this.secondPlayer, this.firstPlayer)
       }
 
       this.fightResult();
     });
   }
 
-  start = () => {
-    this.addPlayers();
+  start = async () => {
+    const p1 = JSON.parse(localStorage.getItem('player1'));
+    const p2 = await this.api.getRandomPlayer();
+
+    this.firstPlayer = new Player({
+      ...p1,
+      player: 1,
+      rootSelector: 'arenas',
+    });
+    this.secondPlayer = new Player({
+      ...p2,
+      player: 2,
+      rootSelector: 'arenas',
+    });
+
+    this.firstPlayer.renderPlayer();
+    this.secondPlayer.renderPlayer();
     this.addFormSubmit();
-    generateLogs('start', firstPlayer, secondPlayer);
+    generateLogs('start', this.firstPlayer, this.secondPlayer);
   }
 }
